@@ -55,6 +55,7 @@ public class UserAcceptanceTest extends AcceptanceTest {
 
         assertThat(response.getStatusCode(), is(HttpStatus.FOUND));
         assertNotNull(userRepository.findByUserId(userId));
+        log.debug("response headers : ", response.getHeaders());
         assertThat(response.getHeaders().getLocation().getPath(), is("/users"));
     }
 
