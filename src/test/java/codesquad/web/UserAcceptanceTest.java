@@ -50,7 +50,7 @@ public class UserAcceptanceTest extends AcceptanceTest {
         params.add("name", "자바지기");
         params.add("email", "javajigi@slipp.net");
         HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
-        
+
         ResponseEntity<String> response = template().postForEntity("/users", request, String.class);
 
         assertThat(response.getStatusCode(), is(HttpStatus.FOUND));
