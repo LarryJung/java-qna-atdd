@@ -32,5 +32,12 @@ public class QuestionController {
         }).orElseThrow(() -> new CannotFindQuestionException("no such question"));
     }
 
-
+    @GetMapping("/form")
+    public String createForm(@LoginUser User loginUser) {
+//        log.debug("login user info : ", loginUser.toString());
+//        if (loginUser.isGuestUser()) {
+//            return "user/login";
+//        }
+        return "qna/form";
+    }
 }

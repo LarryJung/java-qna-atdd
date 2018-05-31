@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import support.test.AcceptanceTest;
 
+import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -52,43 +53,45 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
         log.debug("body : {}", response.getBody());
     }
-//
-//    @Test
-//    public void can_show_create_form_for_login_user() {
-//        response = basicAuthTemplate()
-//                .getForEntity("/questions/create", String.class);
-//        assertThat(response.getStatusCode(), is(HttpStatus.OK));
-//        log.debug("body : {}", response.getBody());
-//    }
-//
-//    @Test
-//    public void cannot_show_create_form_for_guest_user() {
-//        response = template()
-//                .getForEntity("/questions/create", String.class);
-//        assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
-//        log.debug("body : {}", response.getBody());
-//    }
-//
-//    @Test
-//    public void can_create_for_login_user() {
-//        request = HtmlFormDataBuilder.urlEncodedForm()
-//                .addParameter("title", "질문 있어요!")
-//                .addParameter("contents", "ㅇㅋ").build();
-//
-//        response = basicAuthTemplate().postForEntity("/questions", request, String.class);
-//        assertThat(response.getStatusCode(), is(HttpStatus.FOUND));
-//    }
-//
-//    @Test // 이 테스트를 해야하나?
-//    public void cannnot_create_for_guest_user() {
-//        request = HtmlFormDataBuilder.urlEncodedForm()
-//                .addParameter("title", "질문 있어요!")
-//                .addParameter("contents", "ㅇㅋ").build();
-//
-//        response = template().postForEntity("/questions", request, String.class);
-//        assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
-//    }
-//
+
+    @Test
+    public void can_show_create_form_for_login_user() {
+        response = basicAuthTemplate()
+                .getForEntity("/questions/form", String.class);
+        log.debug("body : {}", response.getBody());
+        assertThat(response.getStatusCode(), is(HttpStatus.OK));
+        assertTrue(response.getBody().contains("제목"));
+
+    }
+
+    @Test
+    public void cannot_show_create_form_for_guest_user() {
+        response = template()
+                .getForEntity("/questions/form", String.class);
+        assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN)); // 그냥 이렇게 막혀버리면 login 화면을 어떻게 보여주지?
+        log.debug("response : {}",response);
+    }
+
+    @Test
+    public void can_create_for_login_user() {
+        request = HtmlFormDataBuilder.urlEncodedForm()
+                .addParameter("title", "질문 있어요!")
+                .addParameter("contents", "ㅇㅋ").build();
+
+        response = basicAuthTemplate().postForEntity("/questions", request, String.class);
+        assertThat(response.getStatusCode(), is(HttpStatus.FOUND));
+    }
+
+    @Test // 이 테스트를 해야하나?
+    public void cannnot_create_for_guest_user() {
+        request = HtmlFormDataBuilder.urlEncodedForm()
+                .addParameter("title", "질문 있어요!")
+                .addParameter("contents", "ㅇㅋ").build();
+
+        response = template().postForEntity("/questions", request, String.class);
+        assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
+    }
+
 //    @Test
 //    public void can_show_update_form_for_owner() {
 //
