@@ -5,7 +5,9 @@ import java.util.Optional;
 
 import javax.annotation.Resource;
 
+import codesquad.dto.QuestionDto;
 import codesquad.exceptions.CannotFindQuestionException;
+import codesquad.exceptions.UnAuthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
@@ -43,8 +45,15 @@ public class QnaService {
     }
 
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        return null;
+        Question original = findById(loginUser, id); // 여기서도 유저 매칭 확인,
+        original.update(loginUser, updatedQuestion); // 여기서도 유저 매칭 확인, 같은 확인절차를 반복해서 하는 이유? 더욱 안전하게?
+        return questionRepository.save(original);
+    }
+
+    private Question findById(User loginUser, long id) {
+        return questionRepository.findById(id)
+                .filter(q -> q.isOwner(loginUser))
+                .orElseThrow(() -> new UnAuthorizedException("permission denied!"));
     }
 
     @Transactional

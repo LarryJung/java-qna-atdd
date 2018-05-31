@@ -10,12 +10,8 @@ import codesquad.service.QnaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -31,7 +27,7 @@ public class QuestionController {
     @GetMapping("/{id}")
     public String show(@PathVariable Long id, Model model) throws CannotFindQuestionException {
         return qnaService.findById(id).map(q -> {
-            model.addAttribute("question", q);
+            model.addAttribute("question", q.toQuestionDto());
             return "qna/show";
         }).orElseThrow(() -> new CannotFindQuestionException("no such question"));
     }
@@ -46,18 +42,24 @@ public class QuestionController {
     }
 
     @PostMapping("")
-    public String createQuestion(@LoginUser User loginUser, QuestionDto questionDto) {
-        Question createdQuestion = qnaService.create(loginUser, new Question(questionDto.getTitle(), questionDto.getContents()));
-        return String.format("redirect:/questions/%d", createdQuestion.getId());
+    public String createQuestion(@LoginUser User loginUser, QuestionDto target) {
+        Question createdQuestion = qnaService.create(loginUser, target.toQuestion());
+        return String.format("redirect:%s", createdQuestion.generateUrl());
     }
 
     @GetMapping("/{id}/form")
     public String showUpdateForm(@LoginUser User loginUser, @PathVariable Long id, Model model) {
         return qnaService.findById(id).filter(q -> q.isOwner(loginUser))
                 .map(q -> {
-                    model.addAttribute("question", q);
+                    model.addAttribute("question", q.toQuestionDto());
                     return "qna/updateForm";
                 }).orElseThrow(() -> new UnAuthorizedException("owner is not matched!"));
+    }
+
+    @PutMapping("/{id}")
+    public String update(@LoginUser User loginUser, @PathVariable long id, QuestionDto target) {
+        Question question = qnaService.update(loginUser, id, target.toQuestion());
+        return String.format("redirect:%s", question.generateUrl());
     }
 
 }

@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
@@ -46,7 +47,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
     public void can_read_for_login_user() {
         defaultQuestion = defaultQuestion();
         response = basicAuthTemplate()
-                .getForEntity(String.format("/questions/%d", defaultQuestion.getId()), String.class);
+                .getForEntity(defaultQuestion.generateUrl(), String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
         log.debug("body : {}", response.getBody());
     }
@@ -55,7 +56,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
     public void can_read_for_guest_user() {
         defaultQuestion = defaultQuestion();
         response = template()
-                .getForEntity(String.format("/questions/%d", defaultQuestion.getId()), String.class);
+                .getForEntity(defaultQuestion.generateUrl(), String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
         log.debug("body : {}", response.getBody());
     }
@@ -102,7 +103,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
     public void can_show_update_form_for_owner() {
         defaultQuestion = defaultQuestion();
         response = basicAuthTemplate()
-                .getForEntity(String.format("/questions/%d/form", defaultQuestion.getId()), String.class);
+                .getForEntity(String.format("%s/form", defaultQuestion.generateUrl()), String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
         log.debug("body : {}", response.getBody());
     }
@@ -112,7 +113,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
         defaultQuestion = defaultQuestion();
         User otherUser = userRepository.findByUserId("sanjigi").get();
         response = basicAuthTemplate(otherUser)
-                .getForEntity(String.format("/questions/%d/form", defaultQuestion.getId()), String.class);
+                .getForEntity(String.format("%s/form", defaultQuestion.generateUrl()), String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
         log.debug("body : {}", response.getBody());
     }
@@ -121,21 +122,47 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
     public void cannot_show_update_form_for_guest_user() {
         defaultQuestion = defaultQuestion();
         response = template()
-                .getForEntity(String.format("/questions/%d/form", defaultQuestion.getId()), String.class);
+                .getForEntity(String.format("%s/form", defaultQuestion.generateUrl()), String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
         log.debug("body : {}", response.getBody());
     }
 
-//    @Test
-//    public void cannot_update_for_other_user() {
-//
-//    }
-//
-//    @Test
-//    public void cannot_update_for_guest_user() {
-//
-//    }
-//
+    @Test
+    public void can_update_for_owner() {
+        defaultQuestion = defaultQuestion();
+        request = HtmlFormDataBuilder.urlEncodedForm()
+                .addParameter("title", "질문 수정했음")
+                .addParameter("contents", "내용 수정했음").build();
+
+        response = basicAuthTemplate().exchange(defaultQuestion.generateUrl(), HttpMethod.PUT, request, String.class);
+        assertThat(response.getStatusCode(), is(HttpStatus.FOUND));
+    }
+
+    @Test
+    public void cannot_update_for_other_user() {
+        defaultQuestion = defaultQuestion();
+        User otherUser = userRepository.findByUserId("sanjigi").get();
+        request = HtmlFormDataBuilder.urlEncodedForm()
+                .addParameter("title", "질문 수정했음")
+                .addParameter("contents", "내용 수정했음").build();
+
+        response = basicAuthTemplate(otherUser).exchange(defaultQuestion.generateUrl(), HttpMethod.PUT, request, String.class);
+        assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
+
+    }
+
+    @Test
+    public void cannot_update_for_guest_user() {
+        defaultQuestion = defaultQuestion();
+        request = HtmlFormDataBuilder.urlEncodedForm()
+                .addParameter("title", "질문 수정했음")
+                .addParameter("contents", "내용 수정했음").build();
+
+        response = template().exchange(defaultQuestion.generateUrl(), HttpMethod.PUT, request, String.class);
+        assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
+
+    }
+
 //    @Test
 //    public void can_delete_for_owner() {
 //
