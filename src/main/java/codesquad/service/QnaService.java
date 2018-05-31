@@ -53,12 +53,21 @@ public class QnaService {
     private Question findById(User loginUser, long id) {
         return questionRepository.findById(id)
                 .filter(q -> q.isOwner(loginUser))
-                .orElseThrow(() -> new UnAuthorizedException("permission denied!"));
+                .orElseThrow(() -> new UnAuthorizedException("owner is not matched!"));
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
+        Question original = findById(loginUser, questionId);
+        log.debug("original question : {}", original);
+        if (original.isDeletable(loginUser)) {
+            log.debug("question {} will be deleted", questionId);
+            original.logicalDelete();
+            deleteHistoryService.registerHistory(loginUser, original);
+            questionRepository.save(original);
+            return;
+        }
+        throw new CannotDeleteException("other user's answers are still remained!");
     }
 
     public Iterable<Question> findAll() {

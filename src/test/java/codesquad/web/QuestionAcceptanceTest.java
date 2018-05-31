@@ -1,17 +1,11 @@
 package codesquad.web;
 
-import codesquad.domain.Question;
-import codesquad.domain.QuestionRepository;
-import codesquad.domain.User;
-import codesquad.domain.UserRepository;
+import codesquad.domain.*;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.util.MultiValueMap;
 import support.test.AcceptanceTest;
 
@@ -28,6 +22,9 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
 
     @Autowired
     private QuestionRepository questionRepository;
+
+    @Autowired
+    private AnswerRepository answerRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -163,19 +160,46 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
 
     }
 
-//    @Test
-//    public void can_delete_for_owner() {
-//
-//    }
-//
-//    @Test
-//    public void cannot_delete_for_other_user() {
-//
-//    }
-//
-//    @Test
-//    public void cannot_delete_for_guest_user() {
-//
-//    }
+    @Test
+    public void cannot_delete_for_owner_and_other_answers() {
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity entity = new HttpEntity(headers);
+        defaultQuestion = defaultQuestion();
+
+        response = basicAuthTemplate().exchange(defaultQuestion.generateUrl(), HttpMethod.DELETE, entity, String.class);
+        assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
+    }
+
+    @Test
+    public void can_delete_for_owner_and_owner_answers() {
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity entity = new HttpEntity(headers);
+        Question question = findById(2L);
+        String userId = "sanjigi";
+
+        response = basicAuthTemplate(findByUserId(userId)).exchange(question.generateUrl(), HttpMethod.DELETE, entity, String.class);
+        assertThat(response.getStatusCode(), is(HttpStatus.FOUND));
+    }
+
+    @Test
+    public void cannot_delete_for_other_user() {
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity entity = new HttpEntity(headers);
+        defaultQuestion = defaultQuestion();
+        User otherUser = userRepository.findByUserId("sanjigi").get();
+
+        response = basicAuthTemplate(otherUser).exchange(defaultQuestion.generateUrl(), HttpMethod.DELETE, entity, String.class);
+        assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
+    }
+
+    @Test
+    public void cannot_delete_for_guest_user() {
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity entity = new HttpEntity(headers);
+        defaultQuestion = defaultQuestion();
+
+        response = template().exchange(defaultQuestion.generateUrl(), HttpMethod.DELETE, entity, String.class);
+        assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
+    }
 
 }
