@@ -2,7 +2,6 @@ package codesquad.web;
 
 import codesquad.domain.Question;
 import codesquad.domain.QuestionRepository;
-import codesquad.domain.User;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +75,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
     public void can_create_for_login_user() {
         request = HtmlFormDataBuilder.urlEncodedForm()
                 .addParameter("title", "질문 있어요!")
-                .addParameter("contents", "ㅇㅋ").build();
+                .addParameter("contents", "글자 길이 3이상").build();
 
         response = basicAuthTemplate().postForEntity("/questions", request, String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.FOUND));
@@ -86,7 +85,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
     public void cannnot_create_for_guest_user() {
         request = HtmlFormDataBuilder.urlEncodedForm()
                 .addParameter("title", "질문 있어요!")
-                .addParameter("contents", "ㅇㅋ").build();
+                .addParameter("contents", "글자 길이 3이상").build();
 
         response = template().postForEntity("/questions", request, String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));

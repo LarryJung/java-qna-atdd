@@ -1,6 +1,8 @@
 package codesquad.web;
 
+import codesquad.domain.Question;
 import codesquad.domain.User;
+import codesquad.dto.QuestionDto;
 import codesquad.exceptions.CannotFindQuestionException;
 import codesquad.security.LoginUser;
 import codesquad.service.QnaService;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.annotation.Resource;
@@ -33,11 +36,18 @@ public class QuestionController {
     }
 
     @GetMapping("/form")
-    public String createForm(@LoginUser User loginUser) {
+    public String showCreateForm(@LoginUser User loginUser) {
 //        log.debug("login user info : ", loginUser.toString());
 //        if (loginUser.isGuestUser()) {
 //            return "user/login";
 //        }
         return "qna/form";
     }
+
+    @PostMapping("")
+    public String createQuestion(@LoginUser User loginUser, QuestionDto questionDto) {
+        Question createdQuestion = qnaService.create(loginUser, new Question(questionDto.getTitle(), questionDto.getContents()));
+        return String.format("redirect:/questions/%d", createdQuestion.getId());
+    }
+
 }
