@@ -5,13 +5,14 @@ import java.util.Optional;
 
 import javax.annotation.Resource;
 
+import codesquad.exceptions.CannotFindQuestionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import codesquad.CannotDeleteException;
+import codesquad.exceptions.CannotDeleteException;
 import codesquad.domain.Answer;
 import codesquad.domain.AnswerRepository;
 import codesquad.domain.Question;
