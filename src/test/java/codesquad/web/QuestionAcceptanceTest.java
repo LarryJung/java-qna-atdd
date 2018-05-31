@@ -2,6 +2,8 @@ package codesquad.web;
 
 import codesquad.domain.Question;
 import codesquad.domain.QuestionRepository;
+import codesquad.domain.User;
+import codesquad.domain.UserRepository;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +28,11 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
     @Autowired
     private QuestionRepository questionRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    private Question defaultQuestion;
+
     @Test
     public void cannot_read_for_inappropriate_question() {
         Long noQuestionId = 10L;
@@ -37,7 +44,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
 
     @Test
     public void can_read_for_login_user() {
-        Question defaultQuestion = defaultQuestion();
+        defaultQuestion = defaultQuestion();
         response = basicAuthTemplate()
                 .getForEntity(String.format("/questions/%d", defaultQuestion.getId()), String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
@@ -46,7 +53,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
 
     @Test
     public void can_read_for_guest_user() {
-        Question defaultQuestion = defaultQuestion();
+        defaultQuestion = defaultQuestion();
         response = template()
                 .getForEntity(String.format("/questions/%d", defaultQuestion.getId()), String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
@@ -91,21 +98,34 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
         assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
     }
 
-//    @Test
-//    public void can_show_update_form_for_owner() {
-//
-//    }
-//
-//    @Test
-//    public void cannot_show_update_form_for_other_user() {
-//
-//    }
-//
-//    @Test
-//    public void cannot_show_update_form_for_guest_user() {
-//
-//    }
-//
+    @Test
+    public void can_show_update_form_for_owner() {
+        defaultQuestion = defaultQuestion();
+        response = basicAuthTemplate()
+                .getForEntity(String.format("/questions/%d/form", defaultQuestion.getId()), String.class);
+        assertThat(response.getStatusCode(), is(HttpStatus.OK));
+        log.debug("body : {}", response.getBody());
+    }
+
+    @Test
+    public void cannot_show_update_form_for_other_user() {
+        defaultQuestion = defaultQuestion();
+        User otherUser = userRepository.findByUserId("sanjigi").get();
+        response = basicAuthTemplate(otherUser)
+                .getForEntity(String.format("/questions/%d/form", defaultQuestion.getId()), String.class);
+        assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
+        log.debug("body : {}", response.getBody());
+    }
+
+    @Test
+    public void cannot_show_update_form_for_guest_user() {
+        defaultQuestion = defaultQuestion();
+        response = template()
+                .getForEntity(String.format("/questions/%d/form", defaultQuestion.getId()), String.class);
+        assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
+        log.debug("body : {}", response.getBody());
+    }
+
 //    @Test
 //    public void cannot_update_for_other_user() {
 //

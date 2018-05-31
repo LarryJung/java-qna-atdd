@@ -4,6 +4,7 @@ import codesquad.domain.Question;
 import codesquad.domain.User;
 import codesquad.dto.QuestionDto;
 import codesquad.exceptions.CannotFindQuestionException;
+import codesquad.exceptions.UnAuthorizedException;
 import codesquad.security.LoginUser;
 import codesquad.service.QnaService;
 import org.slf4j.Logger;
@@ -48,6 +49,15 @@ public class QuestionController {
     public String createQuestion(@LoginUser User loginUser, QuestionDto questionDto) {
         Question createdQuestion = qnaService.create(loginUser, new Question(questionDto.getTitle(), questionDto.getContents()));
         return String.format("redirect:/questions/%d", createdQuestion.getId());
+    }
+
+    @GetMapping("/{id}/form")
+    public String showUpdateForm(@LoginUser User loginUser, @PathVariable Long id, Model model) {
+        return qnaService.findById(id).filter(q -> q.isOwner(loginUser))
+                .map(q -> {
+                    model.addAttribute("question", q);
+                    return "qna/updateForm";
+                }).orElseThrow(() -> new UnAuthorizedException("owner is not matched!"));
     }
 
 }
