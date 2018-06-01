@@ -3,8 +3,6 @@ package codesquad.web;
 import codesquad.domain.Question;
 import codesquad.domain.User;
 import codesquad.dto.QuestionDto;
-import codesquad.exceptions.CannotDeleteException;
-import codesquad.exceptions.CannotFindQuestionException;
 import codesquad.exceptions.UnAuthorizedException;
 import codesquad.security.LoginUser;
 import codesquad.service.QnaService;
@@ -15,6 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityNotFoundException;
 
 @Controller
 @RequestMapping("/questions")
@@ -26,19 +25,15 @@ public class QuestionController {
     QnaService qnaService;
 
     @GetMapping("/{id}")
-    public String show(@PathVariable Long id, Model model) throws CannotFindQuestionException {
+    public String show(@PathVariable Long id, Model model) {
         return qnaService.findById(id).map(q -> {
             model.addAttribute("question", q.toQuestionDto());
             return "qna/show";
-        }).orElseThrow(() -> new CannotFindQuestionException("no such question"));
+        }).orElseThrow(EntityNotFoundException::new);
     }
 
     @GetMapping("/form")
     public String showCreateForm(@LoginUser User loginUser) {
-//        log.debug("login user info : ", loginUser.toString());
-//        if (loginUser.isGuestUser()) {
-//            return "user/login";
-//        }
         return "qna/form";
     }
 
@@ -64,7 +59,7 @@ public class QuestionController {
     }
 
     @DeleteMapping("/{id}")
-    public String delete(@LoginUser User loginUser, @PathVariable Long id) throws CannotDeleteException {
+    public String delete(@LoginUser User loginUser, @PathVariable Long id) {
         qnaService.deleteQuestion(loginUser, id);
         return "redirect:/";
     }

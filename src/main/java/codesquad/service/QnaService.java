@@ -57,7 +57,7 @@ public class QnaService {
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
+    public void deleteQuestion(User loginUser, long questionId) throws UnAuthorizedException{
         Question original = findById(loginUser, questionId);
         log.debug("original question : {}", original);
         if (original.isDeletable(loginUser)) {
@@ -67,7 +67,7 @@ public class QnaService {
             questionRepository.save(original);
             return;
         }
-        throw new CannotDeleteException("other user's answers are still remained!");
+        throw new UnAuthorizedException();
     }
 
     public Iterable<Question> findAll() {

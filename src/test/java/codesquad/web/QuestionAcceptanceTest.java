@@ -36,7 +36,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
         Long noQuestionId = 10L;
         response = template()
                 .getForEntity(String.format("/questions/%d", noQuestionId), String.class);
-        assertThat(response.getStatusCode(), is(HttpStatus.NOT_FOUND));
+        assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
         log.debug("body : {}", response.getBody());
     }
 
