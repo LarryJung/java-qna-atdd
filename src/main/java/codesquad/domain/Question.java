@@ -69,6 +69,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public boolean isOwner(User loginUser) {
+        System.out.println(writer);
+        System.out.println(loginUser);
+        System.out.println("match.. " + writer.equals(loginUser));
         return writer.equals(loginUser);
     }
 
@@ -110,12 +113,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public List<DeleteHistory> toDeleteHistories(User loginUser) {
         List<DeleteHistory> deleteHistories = new ArrayList<>();
         deleteHistories.add(new DeleteHistory(ContentType.QUESTION, this.getId(), loginUser));
-//        if (answers.size() != 0) {
-            deleteHistories.addAll(answers.stream().map(a -> {
-                a.logicalDelete();
-                return new DeleteHistory(ContentType.ANSWER, a.getId(), loginUser);
-                }).collect(Collectors.toList()));
-//        }
+        deleteHistories.addAll(answers.stream().map(a -> {
+            a.logicalDelete();
+            return new DeleteHistory(ContentType.ANSWER, a.getId(), loginUser);
+        }).collect(Collectors.toList()));
         return Collections.unmodifiableList(deleteHistories);
     }
 }

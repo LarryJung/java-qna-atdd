@@ -1,7 +1,6 @@
 package codesquad.service;
 
 import java.util.List;
-import java.util.Optional;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityNotFoundException;
@@ -56,14 +55,13 @@ public class QnaService {
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws UnAuthorizedException{
+    public Question deleteQuestion(User loginUser, long questionId) throws UnAuthorizedException{
         Question original = findById(loginUser, questionId);
         if (original.isDeletable(loginUser)) {
             log.debug("question {} will be deleted", questionId);
             original.logicalDelete();
             deleteHistoryService.registerHistory(loginUser, original);
-            questionRepository.save(original);
-            return;
+            return questionRepository.save(original);
         }
         throw new UnAuthorizedException();
     }
