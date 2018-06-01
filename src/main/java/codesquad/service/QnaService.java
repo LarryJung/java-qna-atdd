@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityNotFoundException;
 
 import codesquad.dto.QuestionDto;
-import codesquad.exceptions.CannotFindQuestionException;
 import codesquad.exceptions.UnAuthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import codesquad.exceptions.CannotDeleteException;
 import codesquad.domain.Answer;
 import codesquad.domain.AnswerRepository;
 import codesquad.domain.Question;
@@ -40,17 +39,17 @@ public class QnaService {
         return questionRepository.save(question);
     }
 
-    public Optional<Question> findById(long id) {
-        return questionRepository.findById(id);
+    public Question findById(long id) {
+        return questionRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 
-    public Question update(User loginUser, long id, Question updatedQuestion) {
+    public Question update(User loginUser, long id, QuestionDto updatedQuestion) {
         Question original = findById(loginUser, id); // 여기서도 유저 매칭 확인,
-        original.update(loginUser, updatedQuestion); // 여기서도 유저 매칭 확인, 같은 확인절차를 반복해서 하는 이유? 더욱 안전하게?
+        original.update(loginUser, updatedQuestion.toQuestion()); // 여기서도 유저 매칭 확인, 같은 확인절차를 반복해서 하는 이유? 더욱 안전하게?
         return questionRepository.save(original);
     }
 
-    private Question findById(User loginUser, long id) {
+    public Question findById(User loginUser, long id) {
         return questionRepository.findById(id)
                 .filter(q -> q.isOwner(loginUser))
                 .orElseThrow(() -> new UnAuthorizedException("owner is not matched!"));
@@ -59,7 +58,6 @@ public class QnaService {
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws UnAuthorizedException{
         Question original = findById(loginUser, questionId);
-        log.debug("original question : {}", original);
         if (original.isDeletable(loginUser)) {
             log.debug("question {} will be deleted", questionId);
             original.logicalDelete();
@@ -86,4 +84,5 @@ public class QnaService {
         // TODO 답변 삭제 기능 구현 
         return null;
     }
+
 }
