@@ -14,7 +14,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class QuestionAcceptanceTest extends AcceptanceTest{
-    
     private final Logger log = LoggerFactory.getLogger(QuestionAcceptanceTest.class);
 
     private HttpEntity<MultiValueMap<String, Object>> request;

@@ -28,9 +28,6 @@ public class QnaServiceTest {
     private QnaService qnaService;
 
     @Mock
-    Question question;
-
-    @Mock
     private DeleteHistoryService deleteHistoryService;
 
     @Test(expected = EntityNotFoundException.class)
@@ -88,7 +85,6 @@ public class QnaServiceTest {
         deleteQuestion.writeBy(writer);
         deleteQuestion.addAnswer(new Answer(other, "hello"));
         when(questionRepository.findById(anyLong())).thenReturn(Optional.of(deleteQuestion));
-        when(question.isDeletable(writer)).thenReturn(false);
 
         qnaService.deleteQuestion(writer, 1);
 
@@ -100,14 +96,11 @@ public class QnaServiceTest {
         Question deleteQuestion = new Question("title", "good");
         deleteQuestion.writeBy(writer);
         when(questionRepository.findById(anyLong())).thenReturn(Optional.of(deleteQuestion));
-        when(question.isDeletable(writer)).thenReturn(true);
-        doNothing().when(question).logicalDelete();
         doNothing().when(deleteHistoryService).registerHistory(writer, deleteQuestion);
         when(questionRepository.save(deleteQuestion)).thenReturn(deleteQuestion);
 
         Question returned = qnaService.deleteQuestion(writer, 1);
-        assertThat(deleteQuestion, is(returned));
+        assertThat(returned.isDeleted(), is(true));
     }
-
 
 }
