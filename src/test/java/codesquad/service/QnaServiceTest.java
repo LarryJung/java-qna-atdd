@@ -5,6 +5,7 @@ import codesquad.domain.Question;
 import codesquad.domain.QuestionRepository;
 import codesquad.domain.User;
 import codesquad.exceptions.UnAuthorizedException;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -30,6 +31,17 @@ public class QnaServiceTest {
     @Mock
     private DeleteHistoryService deleteHistoryService;
 
+    private User javajigi;
+    private User sanjigi;
+    private Question question;
+
+    @Before
+    public void setup() {
+        sanjigi = new User("sanjigi", "password", "name", "sanjigi@slipp.net");
+        javajigi = new User("javajigi", "password", "name", "javajigi@slipp.net");
+        question = new Question("title", "good");
+    }
+
     @Test(expected = EntityNotFoundException.class)
     public void read_fail_question_not_found() {
         when(questionRepository.findById(anyLong())).thenReturn(Optional.empty());
@@ -39,67 +51,55 @@ public class QnaServiceTest {
 
     @Test
     public void read_success() {
-        Question question = new Question("title", "good");
         when(questionRepository.findById(anyLong())).thenReturn(Optional.of(question));
         assertThat(qnaService.findById(1), is(question));
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void update_fail_owner_not_match() {
-        User user = new User("sanjigi", "password", "name", "javajigi@slipp.net");
-        User other = new User("javajigi", "password", "name", "javajigi@slipp.net");
-        Question question = new Question("title", "good");
-        question.writeBy(other);
+        question.writeBy(javajigi);
         when(questionRepository.findById(anyLong())).thenReturn(Optional.of(question));
-        when(questionRepository.findById(anyLong()).filter(q -> q.isOwner(user))).thenReturn(Optional.empty());
+        when(questionRepository.findById(anyLong()).filter(q -> q.isOwner(sanjigi))).thenReturn(Optional.empty());
 
-        qnaService.update(user, 1, question.toQuestionDto());
+        qnaService.update(sanjigi, 1, question.toQuestionDto());
     }
 
     @Test
     public void update_success_owner_match() {
-        User user = new User("sanjigi", "password", "name", "javajigi@slipp.net");
-        Question question = new Question("title", "good");
-        question.writeBy(user);
+        question.writeBy(javajigi);
         when(questionRepository.findById(anyLong())).thenReturn(Optional.of(question));
-        when(questionRepository.findById(anyLong()).filter(q -> q.isOwner(user))).thenReturn(Optional.of(question));
+        when(questionRepository.findById(anyLong()).filter(q -> q.isOwner(javajigi))).thenReturn(Optional.of(question));
 
-        qnaService.update(user, 1, question.toQuestionDto());
+        qnaService.update(javajigi, 1, question.toQuestionDto());
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void delete_fail_owner_not_match() {
-        User writer = new User("sanjigi", "password", "name", "javajigi@slipp.net");
-        Question deleteQuestion = new Question("title", "good");
-        deleteQuestion.writeBy(writer);
+        question.writeBy(javajigi);
         when(questionRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-        qnaService.deleteQuestion(writer, 1);
+        qnaService.deleteQuestion(sanjigi, 1);
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void delete_fail_answer_writer_not_match() {
-        User writer = new User("sanjigi", "password", "name", "javajigi@slipp.net");
-        User other = new User("javajigi", "password", "name", "javajigi@slipp.net");
-        Question deleteQuestion = new Question("title", "good");
-        deleteQuestion.writeBy(writer);
-        deleteQuestion.addAnswer(new Answer(other, "hello"));
-        when(questionRepository.findById(anyLong())).thenReturn(Optional.of(deleteQuestion));
+        question.writeBy(javajigi);
+        question.addAnswer(new Answer(sanjigi, "hello"));
+        when(questionRepository.findById(anyLong())).thenReturn(Optional.of(question));
 
-        qnaService.deleteQuestion(writer, 1);
+        qnaService.deleteQuestion(javajigi, 1);
 
     }
 
     @Test
     public void delete_success() {
-        User writer = new User("sanjigi", "password", "name", "javajigi@slipp.net");
-        Question deleteQuestion = new Question("title", "good");
-        deleteQuestion.writeBy(writer);
-        when(questionRepository.findById(anyLong())).thenReturn(Optional.of(deleteQuestion));
-        doNothing().when(deleteHistoryService).registerHistory(writer, deleteQuestion);
-        when(questionRepository.save(deleteQuestion)).thenReturn(deleteQuestion);
+        question.writeBy(javajigi);
+        question.addAnswer(new Answer(javajigi, "hello"));
+        when(questionRepository.findById(anyLong())).thenReturn(Optional.of(question));
+        doNothing().when(deleteHistoryService).registerHistory(javajigi, question);
+        when(questionRepository.save(question)).thenReturn(question);
 
-        Question returned = qnaService.deleteQuestion(writer, 1);
+        Question returned = qnaService.deleteQuestion(javajigi, 1);
         assertThat(returned.isDeleted(), is(true));
     }
 

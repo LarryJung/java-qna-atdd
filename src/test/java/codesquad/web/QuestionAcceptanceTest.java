@@ -77,9 +77,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
 
     @Test
     public void can_create_for_login_user() {
-        request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("title", "질문 있어요!")
-                .addParameter("contents", "글자 길이 3이상").build();
+        request = createQuestionReq();
 
         response = basicAuthTemplate().postForEntity("/questions", request, String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.FOUND));
@@ -87,9 +85,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
 
     @Test // 이 테스트를 해야하나?
     public void cannnot_create_for_guest_user() {
-        request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("title", "질문 있어요!")
-                .addParameter("contents", "글자 길이 3이상").build();
+        request = createQuestionReq();
 
         response = template().postForEntity("/questions", request, String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
@@ -126,9 +122,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
     @Test
     public void can_update_for_owner() {
         defaultQuestion = defaultQuestion();
-        request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("title", "질문 수정했음")
-                .addParameter("contents", "내용 수정했음").build();
+        request = updateQuestionReq();
 
         response = basicAuthTemplate().exchange(defaultQuestion.generateUrl(), HttpMethod.PUT, request, String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.FOUND));
@@ -138,9 +132,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
     public void cannot_update_for_other_user() {
         defaultQuestion = defaultQuestion();
         User otherUser = userRepository.findByUserId("sanjigi").get();
-        request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("title", "질문 수정했음")
-                .addParameter("contents", "내용 수정했음").build();
+        request = updateQuestionReq();
 
         response = basicAuthTemplate(otherUser).exchange(defaultQuestion.generateUrl(), HttpMethod.PUT, request, String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
@@ -150,9 +142,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
     @Test
     public void cannot_update_for_guest_user() {
         defaultQuestion = defaultQuestion();
-        request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("title", "질문 수정했음")
-                .addParameter("contents", "내용 수정했음").build();
+        request = updateQuestionReq();
 
         response = template().exchange(defaultQuestion.generateUrl(), HttpMethod.PUT, request, String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
@@ -161,8 +151,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
 
     @Test
     public void cannot_delete_for_owner_and_other_answers() {
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity entity = new HttpEntity(headers);
+        HttpEntity entity = getHttpEntity();
         defaultQuestion = defaultQuestion();
 
         response = basicAuthTemplate().exchange(defaultQuestion.generateUrl(), HttpMethod.DELETE, entity, String.class);
@@ -171,8 +160,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
 
     @Test
     public void can_delete_for_owner_and_owner_answers() {
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity entity = new HttpEntity(headers);
+        HttpEntity entity = getHttpEntity();
         Question question = findById(2L);
         String userId = "sanjigi";
 
@@ -182,8 +170,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
 
     @Test
     public void cannot_delete_for_other_user() {
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity entity = new HttpEntity(headers);
+        HttpEntity entity = getHttpEntity();
         defaultQuestion = defaultQuestion();
         User otherUser = userRepository.findByUserId("sanjigi").get();
 
@@ -193,12 +180,28 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
 
     @Test
     public void cannot_delete_for_guest_user() {
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity entity = new HttpEntity(headers);
+        HttpEntity entity = getHttpEntity();
         defaultQuestion = defaultQuestion();
 
         response = template().exchange(defaultQuestion.generateUrl(), HttpMethod.DELETE, entity, String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
+    }
+
+    private HttpEntity getHttpEntity() {
+        HttpHeaders headers = new HttpHeaders();
+        return new HttpEntity(headers);
+    }
+
+    private HttpEntity<MultiValueMap<String, Object>> createQuestionReq() {
+        return HtmlFormDataBuilder.urlEncodedForm()
+                .addParameter("title", "질문 있어요!")
+                .addParameter("contents", "글자 길이 3이상").build();
+    }
+
+    private HttpEntity<MultiValueMap<String, Object>> updateQuestionReq() {
+        return HtmlFormDataBuilder.urlEncodedForm()
+                .addParameter("title", "질문 수정했음")
+                .addParameter("contents", "내용 수정했음").build();
     }
 
 }
