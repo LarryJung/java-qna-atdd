@@ -69,9 +69,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public boolean isOwner(User loginUser) {
-        System.out.println(writer);
-        System.out.println(loginUser);
-        System.out.println("match.. " + writer.equals(loginUser));
         return writer.equals(loginUser);
     }
 
