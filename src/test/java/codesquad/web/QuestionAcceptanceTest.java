@@ -20,12 +20,6 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
     private ResponseEntity<String> response;
 
     @Autowired
-    private QuestionRepository questionRepository;
-
-    @Autowired
-    private AnswerRepository answerRepository;
-
-    @Autowired
     private UserRepository userRepository;
 
     private Question defaultQuestion;
