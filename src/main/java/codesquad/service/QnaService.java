@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
 
 import codesquad.dto.QuestionDto;
 import codesquad.exceptions.UnAuthorizedException;
@@ -83,4 +84,7 @@ public class QnaService {
         return null;
     }
 
+    public Question addQuestion(@Valid QuestionDto questionDto) {
+        return null;
+    }
 }
