@@ -7,5 +7,5 @@ import javax.transaction.Transactional;
 public interface AnswerRepository extends JpaRepository<Answer, Long> {
 
     @Transactional
-    void deleteByWriterId(long writer_id);
+    void deleteByWriterId(long writerId);
 }
