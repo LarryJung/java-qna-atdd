@@ -16,7 +16,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     private final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
 
     @Test
-    public void create() throws Exception {
+    public void create_success() {
         QuestionDto newQuestion = new QuestionDto("hello", "good");
         ResponseEntity<String> response = basicAuthTemplate().postForEntity("/api/questions", newQuestion, String.class);
         log.debug("response : {}", response);
@@ -28,6 +28,11 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         assertThat(dbQuestion.getTitle(), is("hello"));
     }
 
-
-
+    @Test
+    public void create_fail_no_login() {
+        QuestionDto newQuestion = new QuestionDto("hello", "good");
+        ResponseEntity<String> response = template().postForEntity("/api/questions", newQuestion, String.class);
+        log.debug("response : {}", response);
+        assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
+    }
 }
