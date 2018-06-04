@@ -42,10 +42,10 @@ public class QnaService {
         return questionRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 
+    @Transactional
     public Question update(User loginUser, long id, QuestionDto updatedQuestion) {
         Question original = findById(loginUser, id); // 여기서도 유저 매칭 확인,
-        original.update(loginUser, updatedQuestion.toQuestion()); // 여기서도 유저 매칭 확인, 같은 확인절차를 반복해서 하는 이유? 더욱 안전하게?
-        return questionRepository.save(original);
+        return original.update(loginUser, updatedQuestion); // 여기서도 유저 매칭 확인, 같은 확인절차를 반복해서 하는 이유? 더욱 안전하게?
     }
 
     public Question findById(User loginUser, long id) {

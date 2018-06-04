@@ -12,8 +12,6 @@ import codesquad.exceptions.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 
 import codesquad.dto.QuestionDto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -76,13 +74,14 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public void update(User loginUser, Question updatedQuestion) {
+    public Question update(User loginUser, QuestionDto updatedQuestion) {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException("owner is not match. permission denied!");
         }
 
-        this.title = updatedQuestion.title;
-        this.contents = updatedQuestion.contents;
+        this.title = updatedQuestion.toQuestion().title;
+        this.contents = updatedQuestion.toQuestion().contents;
+        return this;
     }
 
     public boolean isDeletable(User loginUser) {
