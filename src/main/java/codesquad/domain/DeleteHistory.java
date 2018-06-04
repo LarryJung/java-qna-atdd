@@ -1,7 +1,5 @@
 package codesquad.domain;
 
-import codesquad.dto.DeleteHistoryDto;
-
 import java.time.LocalDateTime;
 
 import javax.persistence.*;
@@ -35,10 +33,6 @@ public class DeleteHistory {
         this.contentId = contentId;
         this.deletedBy = deletedBy;
         this.createDate = createDate;
-    }
-
-    public DeleteHistoryDto toDeleteHistoryDto() {
-        return new DeleteHistoryDto(id, contentType, contentId, deletedBy, createDate);
     }
 
     public Long getId() {
