@@ -46,13 +46,13 @@ public class QnaServiceTest {
     public void read_fail_question_not_found() {
         when(questionRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-        qnaService.findById(1);
+        qnaService.findQuestionById(1);
     }
 
     @Test
     public void read_success() {
         when(questionRepository.findById(anyLong())).thenReturn(Optional.of(question));
-        assertThat(qnaService.findById(1), is(question));
+        assertThat(qnaService.findQuestionById(1), is(question));
     }
 
     @Test(expected = UnAuthorizedException.class)

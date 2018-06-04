@@ -4,7 +4,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 import codesquad.dto.QuestionDto;
-import codesquad.dto.UserDto;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +17,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void create() throws Exception {
-        QuestionDto newQuestion = new QuestionDto(4L, "hello", "good");
+        QuestionDto newQuestion = new QuestionDto("hello", "good");
         ResponseEntity<String> response = basicAuthTemplate().postForEntity("/api/questions", newQuestion, String.class);
         log.debug("response : {}", response);
         assertThat(response.getStatusCode(), is(HttpStatus.CREATED));
@@ -26,7 +25,9 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         log.debug("location : {}", location);
         QuestionDto dbQuestion = basicAuthTemplate().getForObject(location, QuestionDto.class);
         log.debug("db question : {}", dbQuestion);
-        assertThat(dbQuestion, is(newQuestion));
+        assertThat(dbQuestion.getTitle(), is("hello"));
     }
+
+
 
 }

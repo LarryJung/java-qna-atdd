@@ -39,17 +39,17 @@ public class QnaService {
         return questionRepository.save(question);
     }
 
-    public Question findById(long id) {
+    public Question findQuestionById(long id) {
         return questionRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 
     @Transactional
     public Question update(User loginUser, long id, QuestionDto updatedQuestion) {
-        Question original = findById(loginUser, id); // 여기서도 유저 매칭 확인,
+        Question original = findQuestionById(loginUser, id); // 여기서도 유저 매칭 확인,
         return original.update(loginUser, updatedQuestion); // 여기서도 유저 매칭 확인, 같은 확인절차를 반복해서 하는 이유? 더욱 안전하게?
     }
 
-    public Question findById(User loginUser, long id) {
+    public Question findQuestionById(User loginUser, long id) {
         return questionRepository.findById(id)
                 .filter(q -> q.isOwner(loginUser))
                 .orElseThrow(() -> new UnAuthorizedException("owner is not matched!"));
@@ -57,7 +57,7 @@ public class QnaService {
 
     @Transactional
     public Question deleteQuestion(User loginUser, long questionId) throws UnAuthorizedException{
-        Question original = findById(loginUser, questionId);
+        Question original = findQuestionById(loginUser, questionId);
         if (original.isDeletable(loginUser)) {
             log.debug("question {} will be deleted", questionId);
             original.logicalDelete();
