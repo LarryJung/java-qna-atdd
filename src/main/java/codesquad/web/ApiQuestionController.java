@@ -37,4 +37,10 @@ public class ApiQuestionController {
         return question.toQuestionDto();
     }
 
+    @PutMapping("/{id}")
+    public QuestionDto update(@LoginUser User loginUser, @PathVariable long id, QuestionDto target) {
+        Question question = qnaService.update(loginUser, id, target);
+        return question.toQuestionDto();
+    }
+
 }
