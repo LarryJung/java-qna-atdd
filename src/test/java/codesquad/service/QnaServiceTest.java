@@ -127,7 +127,7 @@ public class QnaServiceTest {
     public void update_answer_fail() {
         Answer original = new Answer(javajigi, "contents");
         when(answerRepository.findById(anyLong())).thenReturn(Optional.of(original));
-        Answer updateAnswer = qnaService.update(sanjigi, DEFAULT_ANSWER_ID, "updated contents");
+        qnaService.update(sanjigi, DEFAULT_ANSWER_ID, "updated contents");
     }
 
     @Test
@@ -142,6 +142,6 @@ public class QnaServiceTest {
     public void delete_answer_fail() {
         Answer original = new Answer(javajigi, "contents");
         when(answerRepository.findById(anyLong())).thenReturn(Optional.of(original));
-        Answer deletedAnswer = qnaService.deleteAnswer(sanjigi, DEFAULT_ANSWER_ID);
+        qnaService.deleteAnswer(sanjigi, DEFAULT_ANSWER_ID);
     }
 }
