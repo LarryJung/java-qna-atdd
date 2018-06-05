@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/questions")
@@ -27,7 +28,7 @@ public class ApiQuestionController {
         Question savedQuestion = qnaService.create(loginUser, questionDto.toQuestion());
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(URI.create("/api/questions/" + savedQuestion.getId()));
+        headers.setLocation(URI.create("api/questions/" + savedQuestion.getId()));
         return new ResponseEntity<>(headers, HttpStatus.CREATED);
     }
 

@@ -128,6 +128,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
         request = updateQuestionReq();
 
         response = basicAuthTemplate(otherUser).exchange(defaultQuestion.generateUrl(), HttpMethod.PUT, request, String.class);
+        log.debug("response : {}", response);
         assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
 
     }

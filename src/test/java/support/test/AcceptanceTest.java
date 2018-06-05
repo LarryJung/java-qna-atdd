@@ -18,6 +18,8 @@ import codesquad.domain.User;
 import codesquad.domain.UserRepository;
 import org.springframework.util.MultiValueMap;
 
+import java.util.List;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 

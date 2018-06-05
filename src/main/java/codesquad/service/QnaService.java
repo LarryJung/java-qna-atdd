@@ -49,6 +49,18 @@ public class QnaService {
         return original.update(loginUser, updatedQuestion); // 여기서도 유저 매칭 확인, 같은 확인절차를 반복해서 하는 이유? 더욱 안전하게?
     }
 
+    @Transactional
+    public Answer update(User loginUser, long id, String contents) {
+        Answer original = findAnswerById(loginUser, id);
+        return original.update(loginUser, contents);
+    }
+
+    private Answer findAnswerById(User loginUser, long id) {
+        return answerRepository.findById(id)
+                .filter(q -> q.isOwner(loginUser))
+                .orElseThrow(() -> new UnAuthorizedException("owner is not matched!"));
+    }
+
     public Question findQuestionById(User loginUser, long id) {
         return questionRepository.findById(id)
                 .filter(q -> q.isOwner(loginUser))
@@ -76,15 +88,24 @@ public class QnaService {
     }
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        return null;
+        Answer newAnswer = new Answer(loginUser, contents);
+        findQuestionById(questionId).addAnswer(newAnswer);
+        log.debug("created answer {}", newAnswer);
+        return answerRepository.save(newAnswer);
     }
 
+    @Transactional
     public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+        Answer original = findAnswerById(loginUser, id);
+        log.debug("check check");
+        return original.logicalDelete();
     }
 
     public Question addQuestion(@Valid QuestionDto questionDto) {
         return null;
+    }
+
+    public Answer findAnswerById(Long id) {
+        return answerRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 }
