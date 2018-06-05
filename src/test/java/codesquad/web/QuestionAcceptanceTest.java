@@ -58,7 +58,6 @@ public class QuestionAcceptanceTest extends AcceptanceTest{
         log.debug("body : {}", response.getBody());
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
         assertTrue(response.getBody().contains("제목"));
-
     }
 
     @Test

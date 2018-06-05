@@ -3,6 +3,7 @@ package codesquad.web;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import codesquad.domain.Answer;
 import codesquad.domain.Question;
 import codesquad.domain.User;
 import codesquad.domain.UserRepository;
@@ -22,6 +23,9 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     private final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
 
+    private Question defaultQuestion;
+    private HttpEntity<MultiValueMap<String, Object>> request;
+
     @Autowired
     private UserRepository userRepository;
 
@@ -35,7 +39,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         assertThat(response.getStatusCode(), is(HttpStatus.CREATED));
         String location = response.getHeaders().getLocation().getPath();
         log.debug("location : {}", location);
-        QuestionDto dbQuestion = basicAuthTemplate().getForObject(location, QuestionDto.class);
+        QuestionDto dbQuestion = template().getForObject(location, QuestionDto.class);
         log.debug("db question : {}", dbQuestion);
         assertThat(dbQuestion.getTitle(), is("hello"));
     }
@@ -48,73 +52,68 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
     }
 
-//
-//    @Test
-//    public void show_success() {
-//        ResponseEntity<String> response = template().getForEntity("/api/questions/1", String.class);
-//        assertThat(response.getStatusCode(), is(HttpStatus.OK));
-//    }
-//
-//    @Test
-//    public void show_fail() {
-//        ResponseEntity<String> response = template().getForEntity("/api/questions/3", String.class);
-//        assertThat(response.getStatusCode(), is(HttpStatus.NOT_FOUND));
-//    }
-
-    private Question defaultQuestion;
-    private HttpEntity<MultiValueMap<String, Object>> request;
-
     @Test
-    public void update_success() {
-        defaultQuestion = defaultQuestion();
-        request = updateQuestionReq();
-        response = basicAuthTemplate().exchange("api/"+defaultQuestion.generateUrl(), HttpMethod.PUT, request, String.class);
+    public void show_success() {
+        QuestionDto newQuestion = new QuestionDto("title", "contents");
+        String location = createResource("/api/questions", newQuestion);
+        ResponseEntity<String> response = template().getForEntity(location, String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
     }
 
     @Test
-    public void update_fail_no_login() {
-        defaultQuestion = defaultQuestion();
-        request = updateQuestionReq();
-        response = template().exchange("api/"+defaultQuestion.generateUrl(), HttpMethod.PUT, request, String.class);
-        assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
+    public void show_fail() {
+        QuestionDto newQuestion = new QuestionDto("title", "contents");
+        String location = createResource("/api/questions", newQuestion);
+        ResponseEntity<String> response = template().getForEntity("/api/questions/100", String.class);
+        assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
+    }
+
+    @Test
+    public void update_success() {
+        QuestionDto newQuestion = new QuestionDto("title", "contents");
+        String location = createResource("/api/questions", newQuestion);
+
+        QuestionDto updateQuestion = new QuestionDto("tititile", "ccontents");
+
+        basicAuthTemplate().put(location, updateQuestion);
+        QuestionDto dbQuestion = basicAuthTemplate().getForObject(location, QuestionDto.class);
+
+        assertThat(dbQuestion.toQuestion(), is(updateQuestion.toQuestion()));
     }
 
     @Test
     public void update_fail_other_user() {
-        User otherUser = userRepository.findByUserId("sanjigi").get();
-        defaultQuestion = defaultQuestion();
-        request = updateQuestionReq();
-        response = basicAuthTemplate(otherUser).exchange("api/"+defaultQuestion.generateUrl(), HttpMethod.PUT, request, String.class);
-        assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
-    }
+        QuestionDto newQuestion = new QuestionDto("title", "contents");
+        String location = createResource("/api/questions", newQuestion);
 
-    @Test
-    public void cannot_delete_for_owner_and_other_answers() {
-        HttpEntity entity = getHttpEntity();
-        defaultQuestion = defaultQuestion();
+        QuestionDto updateQuestion = new QuestionDto("tititile", "ccontents");
+        User loginUser = userRepository.findByUserId("sanjigi").get();
+        basicAuthTemplate(loginUser).put(location, updateQuestion);
 
-        response = basicAuthTemplate().exchange("api/"+defaultQuestion.generateUrl(), HttpMethod.DELETE, entity, String.class);
-        assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
+        QuestionDto dbQuestion = basicAuthTemplate(loginUser).getForObject(location, QuestionDto.class);
+        assertThat(dbQuestion.toQuestion(), is(newQuestion.toQuestion()));
     }
 
     @Test
     public void can_delete_for_owner_and_owner_answers() {
+        User sanjigi = findByUserId("sanjigi");
         HttpEntity entity = getHttpEntity();
-        Question question = findById(2L);
-        String userId = "sanjigi";
+        response = basicAuthTemplate(sanjigi).exchange("/api/questions/2", HttpMethod.DELETE, entity, String.class);
+        assertThat(response.getStatusCode(), is(HttpStatus.OK));
+    }
 
-        response = basicAuthTemplate(findByUserId(userId)).exchange("api/"+question.generateUrl(), HttpMethod.DELETE, entity, String.class);
-        assertThat(response.getStatusCode(), is(HttpStatus.FOUND));
+    @Test
+    public void cannot_delete_for_owner_and_other_answers() {
+        User javajigi = defaultUser();
+        HttpEntity entity = getHttpEntity();
+        response = basicAuthTemplate(javajigi).exchange("/api/questions/1", HttpMethod.DELETE, entity, String.class);
+        assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
     }
 
     @Test
     public void cannot_delete_for_other_user() {
         HttpEntity entity = getHttpEntity();
-        defaultQuestion = defaultQuestion();
-        User otherUser = userRepository.findByUserId("sanjigi").get();
-
-        response = basicAuthTemplate(otherUser).exchange("api/"+defaultQuestion.generateUrl(), HttpMethod.DELETE, entity, String.class);
+        response = basicAuthTemplate(defaultUser()).exchange("/api/questions/2", HttpMethod.DELETE, entity, String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
     }
 
@@ -122,8 +121,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     public void cannot_delete_for_guest_user() {
         HttpEntity entity = getHttpEntity();
         defaultQuestion = defaultQuestion();
-
-        response = template().exchange("api/"+defaultQuestion.generateUrl(), HttpMethod.DELETE, entity, String.class);
+        response = template().exchange("/api/"+defaultQuestion.generateUrl(), HttpMethod.DELETE, entity, String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
     }
 

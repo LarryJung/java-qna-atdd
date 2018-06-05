@@ -32,15 +32,19 @@ public class ApiQuestionController {
     }
 
     @GetMapping("/{id}")
-    public QuestionDto show(@LoginUser User loginUser, @PathVariable long id) {
-        Question question = qnaService.findQuestionById(loginUser, id);
+    public QuestionDto show(@PathVariable long id) {
+        Question question = qnaService.findQuestionById(id);
         return question.toQuestionDto();
     }
 
     @PutMapping("/{id}")
-    public QuestionDto update(@LoginUser User loginUser, @PathVariable long id, QuestionDto target) {
-        Question question = qnaService.update(loginUser, id, target);
-        return question.toQuestionDto();
+    public void update(@LoginUser User loginUser, @PathVariable long id, @Valid @RequestBody QuestionDto target) {
+        qnaService.update(loginUser, id, target);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@LoginUser User loginUser, @PathVariable long id) {
+        qnaService.deleteQuestion(loginUser, id);
     }
 
 }
