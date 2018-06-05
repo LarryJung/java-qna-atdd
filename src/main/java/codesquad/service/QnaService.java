@@ -90,14 +90,12 @@ public class QnaService {
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         Answer newAnswer = new Answer(loginUser, contents);
         findQuestionById(questionId).addAnswer(newAnswer);
-        log.debug("created answer {}", newAnswer);
         return answerRepository.save(newAnswer);
     }
 
     @Transactional
     public Answer deleteAnswer(User loginUser, long id) {
         Answer original = findAnswerById(loginUser, id);
-        log.debug("check check");
         return original.logicalDelete();
     }
 
