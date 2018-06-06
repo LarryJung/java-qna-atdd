@@ -35,57 +35,57 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Before
     public void setup() {
-        newQuestion = new QuestionDto("title", "contents");
-        location = createResource(BASE_URL, newQuestion);
+
     }
 
     @Test
     public void create_success() {
-        QuestionDto newQuestion = new QuestionDto("hello", "good");
+        newQuestion = new QuestionDto("hello", "good");
         response = basicAuthTemplate().postForEntity(BASE_URL, newQuestion, String.class);
-        log.debug("response : {}", response);
         assertThat(response.getStatusCode(), is(HttpStatus.CREATED));
         String location = response.getHeaders().getLocation().getPath();
-        log.debug("location : {}", location);
-        QuestionDto dbQuestion = template().getForObject(location, QuestionDto.class);
-        log.debug("db question : {}", dbQuestion);
+        QuestionDto dbQuestion = getResource(location, QuestionDto.class, defaultUser());
         assertThat(dbQuestion.getTitle(), is("hello"));
     }
 
     @Test
     public void create_fail_no_login() {
-        QuestionDto newQuestion = new QuestionDto("hello", "good");
+        newQuestion = new QuestionDto("hello", "good");
         response = template().postForEntity(BASE_URL, newQuestion, String.class);
-        log.debug("response : {}", response);
         assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
     }
 
     @Test
     public void show_success() {
+        location = createResource(BASE_URL, new QuestionDto("title", "contents"));
         ResponseEntity<String> response = template().getForEntity(location, String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
     }
 
     @Test
-    public void show_fail() { ;
+    public void show_fail() {
+        location = createResource(BASE_URL, new QuestionDto("title", "contents"));
         ResponseEntity<String> response = template().getForEntity(BASE_URL+"/100", String.class);
         assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
     }
 
     @Test
     public void update_success() {
+        location = createResource(BASE_URL, new QuestionDto("title", "contents"));
         QuestionDto updateQuestion = new QuestionDto("tititile", "ccontents");
         basicAuthTemplate().put(location, updateQuestion);
-        QuestionDto dbQuestion = basicAuthTemplate().getForObject(location, QuestionDto.class);
+        QuestionDto dbQuestion = getResource(location, QuestionDto.class, defaultUser());
         assertThat(dbQuestion.toQuestion(), is(updateQuestion.toQuestion()));
     }
 
     @Test
     public void update_fail_other_user() {
+        newQuestion = new QuestionDto("title", "contents");
+        location = createResource(BASE_URL, newQuestion);
         QuestionDto updateQuestion = new QuestionDto("tititile", "ccontents");
         User loginUser = userRepository.findByUserId("sanjigi").get();
         basicAuthTemplate(loginUser).put(location, updateQuestion);
-        QuestionDto dbQuestion = basicAuthTemplate(loginUser).getForObject(location, QuestionDto.class);
+        QuestionDto dbQuestion = getResource(location, QuestionDto.class, loginUser);
         assertThat(dbQuestion.toQuestion(), is(newQuestion.toQuestion()));
     }
 
