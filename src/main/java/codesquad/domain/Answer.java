@@ -67,6 +67,14 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
+    public Answer update(User loginUser, String contents) {
+        if (!isOwner(loginUser)) {
+            throw new UnAuthorizedException("owner is not match. permission denied!");
+        }
+        this.contents = contents;
+        return this;
+    }
+
     @Override
     public String generateUrl() {
         return String.format("%s/answers/%d", question.generateUrl(), getId());
@@ -82,11 +90,4 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
-    public Answer update(User loginUser, String contents) {
-        if (!isOwner(loginUser)) {
-            throw new UnAuthorizedException("owner is not match. permission denied!");
-        }
-        this.contents = contents;
-        return this;
-    }
 }
