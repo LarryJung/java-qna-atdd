@@ -33,8 +33,8 @@ public class ApiAnswerController {
     }
 
     @GetMapping("/{id}")
-    public Answer show(@PathVariable Long id) {
-        return qnaService.findAnswerById(id);
+    public ResponseEntity<?> show(@PathVariable Long id) {
+        return ResponseEntity.ok(qnaService.findAnswerById(id));
     }
 
     @PutMapping("/{id}")
