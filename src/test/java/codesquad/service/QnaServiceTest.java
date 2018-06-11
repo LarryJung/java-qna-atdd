@@ -27,11 +27,11 @@ public class QnaServiceTest {
     @Mock
     private AnswerRepository answerRepository;
 
-    @InjectMocks
-    private QnaService qnaService;
-
     @Mock
     private DeleteHistoryService deleteHistoryService;
+
+    @InjectMocks
+    private QnaService qnaService;
 
     private User javajigi;
     private User sanjigi;
@@ -108,11 +108,12 @@ public class QnaServiceTest {
         question.writeBy(javajigi);
         question.addAnswer(new Answer(javajigi, "hello"));
         when(questionRepository.findById(anyLong())).thenReturn(Optional.of(question));
-        doNothing().when(deleteHistoryService).registerHistory(javajigi, question);
         when(questionRepository.save(question)).thenReturn(question);
 
         Question returned = qnaService.deleteQuestion(javajigi, DEFAULT_QUESTION_ID);
         assertThat(returned.isDeleted(), is(true));
+        assertThat(returned.toDeleteHistories(javajigi).size(), is(2));
+        verify(deleteHistoryService, times(1)).registerHistory(any(User.class), any(Question.class));
     }
 
     @Test
